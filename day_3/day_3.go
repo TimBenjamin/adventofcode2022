@@ -25,6 +25,7 @@ func partOne() int {
 	for _, line := range input {
 		// find the letters that appear in both bags
 		// there is only one, so as soon as it's found, we finish
+		// inefficiently...
 	outer:
 		for _, b1 := range line[0 : len(line)/2] {
 			for _, b2 := range line[len(line)/2:] {
@@ -38,22 +39,27 @@ func partOne() int {
 	return priorityTotal
 }
 
+// for part 2, I want to avoid repeatedly iterating, so will use a set instead:
+func toSet(s string) map[rune]struct{} {
+	out := map[rune]struct{}{}
+	for _, c := range s {
+		out[c] = struct{}{}
+	}
+	return out
+}
+
 func partTwo() int {
 	priorityTotal := 0
 	// surely the input size is divisible by 3 ;-)
 	for i := 0; i < len(input); i += 3 {
-		// need to find the one common letter in these 3 strings
-		// there is only one, so as soon as it's found, we finish
-	outer:
-		for _, b1 := range input[i] {
-			for _, b2 := range input[i+1] {
-				if b2 == b1 {
-					for _, b3 := range input[i+2] {
-						if b3 == b1 {
-							priorityTotal += getPriority((b1))
-							break outer
-						}
-					}
+		line1 := toSet(input[i])
+		line2 := toSet(input[i+1])
+		line3 := toSet(input[i+2])
+		for b := range line1 {
+			if _, ok := line2[b]; ok {
+				if _, ok := line3[b]; ok {
+					priorityTotal += getPriority(b)
+					break
 				}
 			}
 		}
