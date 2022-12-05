@@ -5,6 +5,7 @@ import (
 	"adventofcode2022/day_2"
 	"adventofcode2022/day_3"
 	"adventofcode2022/day_4"
+	"adventofcode2022/day_5"
 	"fmt"
 	"os"
 )
@@ -19,6 +20,7 @@ func main() {
 		"day_2": day_2.Call,
 		"day_3": day_3.Call,
 		"day_4": day_4.Call,
+		"day_5": day_5.Call,
 	}
 
 	var day string
