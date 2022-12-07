@@ -2,7 +2,6 @@ package day_7
 
 import (
 	"adventofcode2022/util"
-	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -27,10 +26,10 @@ func (dir *Directory) addSize(size int) {
 	}
 }
 
-func (dir *Directory) getTotalSize() int {
+func (dir *Directory) getBranchSize() int {
 	size := dir.size
 	for _, dir := range dir.subdirectories {
-		size += dir.getTotalSize()
+		size += dir.getBranchSize()
 	}
 	return size
 }
@@ -50,7 +49,6 @@ func makeFilesystem() {
 			// either cd or ls
 			if line[2:4] == "cd" {
 				to := line[5:]
-				//fmt.Printf(" > cd %v\n", to)
 				if to == "/" {
 					current = root
 				} else if to == ".." {
@@ -65,15 +63,12 @@ func makeFilesystem() {
 						}
 					}
 				}
-				//fmt.Printf(" > new current directory is: %v\n", current.name)
 			} else {
 				// This is a listing, we can populate the current directory with the next lines up until the next $
 				// According to the rubric, there is no `ls <dir>`, only `ls` for the current directory.
-				//fmt.Printf(" > ls\n")
 				i++
 				for ; i < len(input); i++ {
 					line = input[i]
-					//fmt.Printf(" >> line: %v\n", line)
 					if line[0:1] == "$" {
 						i--
 						break
@@ -111,18 +106,13 @@ func makeFilesystem() {
 }
 
 func (dir *Directory) sumSmallDirectories() int {
-	fmt.Printf("Checking: %v\n", dir.name)
 	sum := 0
-	ts := dir.getTotalSize()
-	if ts > 100000 {
-		fmt.Printf(" > too big, explore subdirectories\n")
+	if dir.size > 100000 {
 		for _, sub := range dir.subdirectories {
-			//fmt.Printf("%v contains %v\n", dir.name, sub.name)
 			sum += sub.sumSmallDirectories()
 		}
 	} else {
-		fmt.Printf("add size %v from dir %v\n", ts, dir.name)
-		sum += ts
+		sum += dir.getBranchSize()
 	}
 	return sum
 }
@@ -135,8 +125,30 @@ func partOne() int {
 	return root.sumSmallDirectories()
 }
 
+func (dir *Directory) findClosest(neededSpace int) int {
+	if dir.size >= neededSpace {
+		if dir.size < currentClosest {
+			currentClosest = dir.size
+		}
+		for _, subdir := range dir.subdirectories {
+			subdir.findClosest(neededSpace)
+		}
+	}
+	return currentClosest
+}
+
+var currentClosest int
+
 func partTwo() int {
-	return 0
+	makeFilesystem()
+	diskSpace := 70000000
+	updateSize := 30000000
+	unusedSpace := diskSpace - root.size
+	neededSpace := updateSize - unusedSpace
+	// Find the smallest directory that, if deleted, would free up enough space on the filesystem to run the update.
+	// What is the total size of that directory?
+	currentClosest = root.size
+	return root.findClosest(neededSpace)
 }
 
 func Call(part string, inputFile string) string {
