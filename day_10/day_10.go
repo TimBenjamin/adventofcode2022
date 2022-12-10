@@ -23,8 +23,7 @@ func getCommands() [][]string {
 			commands = append(commands, []string{sp[0], sp[1]})
 		}
 	}
-	// add on a couple more noops in case the last command is an addx
-	commands = append(commands, []string{"noop"})
+	// add on a noop in case the last command is an addx
 	commands = append(commands, []string{"noop"})
 	return commands
 }
