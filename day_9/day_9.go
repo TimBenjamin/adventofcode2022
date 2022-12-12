@@ -3,6 +3,7 @@ package day_9
 import (
 	"adventofcode2022/util"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -77,35 +78,6 @@ func partOne() int {
 			tailPositionSet[position] = struct{}{}
 		}
 	}
-
-	/*
-		Tail positions should be :
-		[0 0]
-		[0 0]
-		[1 0]
-		[2 0]
-		[3 0]
-		[3 0]
-		[4 1]
-		[4 2]
-		[4 3]
-		[4 3]
-		[3 4]
-		[2 4]
-		[2 4]
-		[2 4]
-		[2 4]
-		[3 3]
-		[4 3]
-		[4 3]
-		[4 3]
-		[4 3]
-		[3 2]
-		[2 2]
-		[1 2]
-		[1 2]
-		[1 2]
-	*/
 	return len(tailPositionSet)
 }
 
@@ -129,11 +101,13 @@ func partTwo() int {
 		for i := 0; i < Instruction.amount; i++ {
 			// do the instruction to the head ofthe snake (snake[0])
 			// then apply the rules for drag-along to elements 1-9
+
 			// first add a new item to the log for each element of the snake, which can be the same as the previous step
 			for s := 0; s < 10; s++ {
 				position := []int{snake[s][len(snake[s])-1][0], snake[s][len(snake[s])-1][1]}
 				snake[s] = append(snake[s], position)
 			}
+			// apply the instruction to the head (snake[0])
 			if Instruction.direction == "U" {
 				snake[0][len(snake[0])-1][1]++
 			} else if Instruction.direction == "D" {
@@ -160,22 +134,49 @@ func partTwo() int {
 						snake[s][len(snake[s])-1][1]--
 					}
 				} else if abs(dx) == 2 || abs(dy) == 2 {
-					// this element gets pulled to where the previous segment last was
-					// here is where the bug is - this needs to cascade somehow
-					snake[s][len(snake[s])-1] = snake[s-1][len(snake[s-1])-2]
+					// This element gets pulled to where the previous segment last was.
+					// Due to the different moves involved, I have to be more explicit about the move.
+					if (dx == 1 && dy == 2) || (dx == 2 && dy == 1) {
+						// +1, +1
+						snake[s][len(snake[s])-1][0]++
+						snake[s][len(snake[s])-1][1]++
+					} else if (dx == 1 && dy == -2) || (dx == 2 && dy == -1) {
+						// +1, -1
+						snake[s][len(snake[s])-1][0]++
+						snake[s][len(snake[s])-1][1]--
+					} else if (dx == -2 && dy == 1) || (dx == -1 && dy == 2) {
+						// -1, +1
+						snake[s][len(snake[s])-1][0]--
+						snake[s][len(snake[s])-1][1]++
+					} else if (dx == -2 && dy == -1) || (dx == -1 && dy == -2) {
+						// -1, -1
+						snake[s][len(snake[s])-1][0]--
+						snake[s][len(snake[s])-1][1]--
+					} else if dx == 2 && dy == 2 {
+						// this and following cases are a normal diagonal move
+						snake[s][len(snake[s])-1][0]++
+						snake[s][len(snake[s])-1][1]++
+					} else if dx == -2 && dy == -2 {
+						snake[s][len(snake[s])-1][0]--
+						snake[s][len(snake[s])-1][1]--
+					} else if dx == -2 && dy == 2 {
+						snake[s][len(snake[s])-1][0]--
+						snake[s][len(snake[s])-1][1]++
+					} else if dx == 2 && dy == -2 {
+						snake[s][len(snake[s])-1][0]++
+						snake[s][len(snake[s])-1][1]--
+					} else {
+						for _, s := range snake {
+							fmt.Println(s)
+						}
+						log.Fatal("Unexpected move!")
+					}
 				}
 			}
-			for _, s := range snake {
-				fmt.Println(s)
-			}
-			fmt.Println("---")
 			// update the set of tail positions
 			position := strconv.Itoa(snake[9][len(snake[9])-1][0]) + "," + strconv.Itoa(snake[9][len(snake[9])-1][1])
 			tailPositionSet[position] = struct{}{}
 		}
-	}
-	for k := range tailPositionSet {
-		fmt.Println(k)
 	}
 	return len(tailPositionSet)
 }
