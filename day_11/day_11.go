@@ -105,60 +105,61 @@ func partOne() int {
 		}
 		fmt.Println()
 	}
-	//fmt.Println("Monkey activity:")
+	fmt.Println("Monkey activity:")
 	activity := []int{}
 	for _, monkey := range monkeys {
-		//fmt.Printf("Monkey %v: %v\n", monkey.number, monkey.numInspections)
+		fmt.Printf("Monkey %v: %v\n", monkey.number, monkey.numInspections)
 		activity = append(activity, monkey.numInspections)
 	}
 	sort.Ints(activity)
 	return activity[len(activity)-1] * activity[len(activity)-2]
 }
 
-func applyOperationPartTwo(a int, operation string) int {
-	ops := strings.Split(operation, " ")
-	// first operand is always "old"
-	var b int
-	if ops[2] != "old" {
-		b, _ = strconv.Atoi(ops[2])
-	} else {
-		b = a
+func getLCM(monkeys []Monkey) int {
+	// find the LCM of the division test values, which are all prime numbers
+	// the smallest multiple that these numbers have in common
+	// as they are primes, I should be able to just multiply them together
+	lcm := 1
+	for _, monkey := range monkeys {
+		lcm *= monkey.divisibleTest
 	}
-	// operator is only ever * or +
-	if ops[1] == "+" {
-		return a + b
-	} else {
-		fmt.Printf("Op: %v returns %v * %v\n", operation, a, b)
-		return a * b
-	}
+	return lcm
 }
 
 func partTwo() int {
 	monkeys := getMonkeys()
-	numRounds := 20
+	lcm := getLCM(monkeys)
+	numRounds := 10000
 	for i := 0; i < numRounds; i++ {
 		for _, monkey := range monkeys {
 			for _, item := range monkey.items {
-				worryLevel := applyOperationPartTwo(item, monkey.operation)
-				fmt.Printf("  div test: %v\n", monkey.divisibleTest)
-				if worryLevel%monkey.divisibleTest == 0 { // = "if t is a factor of W"
-					// if t is a factor of W, then: W = t * x
-					// could we just store t?
+				worryLevel := applyOperation(item, monkey.operation)
+				// remove out the common factor
+				// e.g.:
+				// 2 * 3 * 5 = 30
+				// say we are on 31
+				// test for div by 5, 3, or 2 will be the same for 1 as for 31
+				// say we are on 35 (vs 5)
+				// test for 2: r1 (r1)
+				// test for 3: r2 (r2)
+				// test for 5: r0 (r0)
+				// so we can reduce worryLevel to just the remainder when divided by the LCM of the division tests
+				// as these are all primes, we just multiply them together to get the LCM
+				worryLevel = worryLevel % lcm
+				if worryLevel%monkey.divisibleTest == 0 {
 					monkeys[monkey.ifTrueTo].items = append(monkeys[monkey.ifTrueTo].items, worryLevel)
 				} else {
-					// divtest + remainder
-					// monkey.divisibleTest+(worryLevel%monkey.divisibleTest)
 					monkeys[monkey.ifFalseTo].items = append(monkeys[monkey.ifFalseTo].items, worryLevel)
 				}
 				monkeys[monkey.number].numInspections++
 			}
 			monkeys[monkey.number].items = []int{}
 		}
-		fmt.Printf("After round %v monkey items are:\n", i+1)
-		for _, monkey := range monkeys {
-			fmt.Printf("Monkey %v: %v\n", monkey.number, monkey.items)
-		}
-		fmt.Println()
+		// fmt.Printf("After round %v monkey items are:\n", i+1)
+		// for _, monkey := range monkeys {
+		// 	fmt.Printf("Monkey %v: %v\n", monkey.number, monkey.items)
+		// }
+		// fmt.Println()
 	}
 	fmt.Println("Monkey activity:")
 	activity := []int{}
